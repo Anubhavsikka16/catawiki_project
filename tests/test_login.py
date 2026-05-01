@@ -1,7 +1,7 @@
 import pytest
 from pages.login_page import LoginPage
 
-from configurationData.config import BASE_URL
+from configurationData.config import Config
 
 @pytest.mark.login
 def test_login(page, user_data):

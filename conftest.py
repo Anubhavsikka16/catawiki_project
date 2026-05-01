@@ -63,7 +63,8 @@ def context(browser, request):
 @pytest.fixture
 def page(context):
     page = context.new_page()
-    page.set_default_timeout(TIMEOUT)
+    page.set_default_timeout(Config.TIMEOUT)
+    page.goto(Config.BASE_URL)  # Navigate to base URL
     yield page
     page.close()
 

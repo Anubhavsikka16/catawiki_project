@@ -1,5 +1,5 @@
 class LoginLocators:
-    SIGN_IN_BUTTON = "text=Sign in"
+    SIGN_IN_BUTTON = "text=/Sign ?In/i"
     
     EMAIL_INPUT = "input[name='email']"
     PASSWORD_INPUT = "input[name='password']"

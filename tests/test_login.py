@@ -6,7 +6,7 @@ from configurationData.config import Config
 @pytest.mark.login
 def test_login(page, user_data):
     login = LoginPage(page)
-    email = user_data["email"]
+    email = Config.TEST_EMAIL
     password = user_data["password"]
     login.click_on_login_button()
     login.enter_email(email)

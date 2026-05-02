@@ -9,7 +9,6 @@ fake = Faker()
 # -------------------------
 # 🔹 Faker Data Fixtures
 # -------------------------
-
 @pytest.fixture
 def user_data():
     return {
@@ -18,27 +17,39 @@ def user_data():
         "username": fake.user_name()
     }
 
+
+
 # -------------------------
 # 🔹 Playwright Setup
 # -------------------------
-
-@pytest.fixture(scope="session") 
-def playwright_instance(): # open and close Playwright once per session
+@pytest.fixture(scope="session")
+def playwright_instance():
     with sync_playwright() as p:
         yield p
 
+# 🔥 PARAMETRIZED BROWSER (MAIN CHANGE)
 @pytest.fixture(scope="session")
-def browser(playwright_instance): # open and close browser once per session
-    browser = playwright_instance.chromium.launch(headless=Config.HEADLESS)
+def browser_name(request):
+    return request.param
+
+@pytest.fixture(scope="session", params=["chromium", "firefox", "webkit"])
+def browser(playwright_instance, request):
+    browser_name = request.param
+    browser = getattr(playwright_instance, browser_name).launch(
+        headless=Config.HEADLESS
+    )
     yield browser
     browser.close()
 
+# -------------------------
+# 🔹 Context (isolated per test → parallel-safe)
+# -------------------------
 @pytest.fixture(scope="function")
 def context(browser, request):
     test_name = request.node.name
 
     context = browser.new_context(
-        base_url=Config.BASE_URL,
+        base_url=Config.BASE_URL,   # 👍 supports legacy.bablic.com
         viewport=Config.VIEWPORT,
         ignore_https_errors=True,
         record_video_dir=Config.VIDEO_PATH
@@ -60,18 +71,23 @@ def context(browser, request):
 
     context.close()
 
+# -------------------------
+# 🔹 Page Fixture
+# -------------------------
 @pytest.fixture
 def page(context):
     page = context.new_page()
     page.set_default_timeout(Config.TIMEOUT)
-    page.goto(Config.BASE_URL)  # Navigate to base URL
+
+    # ✅ Use base_url properly
+    page.goto(Config.BASE_URL)   # instead of full URL
+
     yield page
     page.close()
 
 # -------------------------
 # 🔹 Failure Handling + Allure
 # -------------------------
-
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield

@@ -33,10 +33,12 @@ pipeline {
         stage('Run Tests in Parallel') {
             steps {
 
-                withCredentials([
-                    string(credentialsId: 'catawiki-email', variable: 'TEST_EMAIL'),
-                    string(credentialsId: 'catawiki-password', variable: 'TEST_PASSWORD')
-                ]) {
+                steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'qa-login-creds',
+                    usernameVariable: 'TEST_EMAIL',
+                    passwordVariable: 'TEST_PASSWORD'
+                )]) {
 
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
 

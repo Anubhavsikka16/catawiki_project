@@ -50,7 +50,6 @@ pipeline {
                 mkdir -p allure-reports
 
                 pytest -n 3 -v -s \
-                
                 --alluredir=allure-reports \
                 --html=html_reports/test_report.html
                 """

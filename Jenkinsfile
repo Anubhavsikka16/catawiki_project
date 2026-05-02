@@ -1,13 +1,7 @@
 pipeline {
     agent any
 
-    parameters {
-        choice(
-            name: 'Browser',
-            choices: ['chromium', 'firefox', 'webkit'],
-            description: 'Select browser to run tests'
-        )
-    }
+    
 
     environment {
         VENV = '.venv'

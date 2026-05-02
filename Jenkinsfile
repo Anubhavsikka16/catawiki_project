@@ -55,8 +55,8 @@ pipeline {
                 mkdir -p html_reports
                 mkdir -p allure-reports
 
-                pytest -n 2 -v -s \
-                --browser ${params.Browser} --headed \
+                pytest -n 3 -v -s \
+                --headed \
                 --alluredir=allure-reports \
                 --html=html_reports/test_report.html
                 """

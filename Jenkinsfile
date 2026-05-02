@@ -32,6 +32,7 @@ pipeline {
                 pip install allure-pytest
                 pip install pytest-html
                 pip install pytest-xdist 
+                pip install Faker
                 '''
             }
         }

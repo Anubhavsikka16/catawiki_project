@@ -1,84 +1,81 @@
 pipeline {
     agent any
 
-    tools {
-        // Optional: if Python is configured in Jenkins
-        // python 'Python3'
+    parameters {
+        choice(
+            name: 'Browser',
+            choices: ['chromium', 'firefox', 'webkit'],
+            description: 'Select browser to run tests'
+        )
     }
 
     environment {
-        ENV = "qa"
-        HEADLESS = "true"
+        VENV = '.venv'
+        
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                checkout scm // Checkout code from the repository
+                git branch: 'main', url: 'https://github.com/Anubhavsikka16/catawiki_project.git'
             }
         }
 
         stage('Setup Python Environment') {
             steps {
                 sh '''
-                    python3 -m venv .venv
-                    .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt
-                    .venv/bin/playwright install --with-deps
+                python3 -m venv $VENV
+                . $VENV/bin/activate
+                pip install --upgrade pip
+                pip3 install pytest-playwright
+                pip install allure-pytest
+                pip install pytest-html
+                pip install pytest-xdist 
                 '''
             }
         }
 
-        stage('Run Tests in Parallel') {
+        stage('Install Playwright Browsers') {
             steps {
+                sh '''
+                . $VENV/bin/activate
+                playwright install
+                '''
+            }
+        }
 
-                steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'qa-login-creds',
-                    usernameVariable: 'TEST_EMAIL',
-                    passwordVariable: 'TEST_PASSWORD'
-                )]) {
+        stage('Run Tests') {
+            steps {
+                sh """
+                . $VENV/bin/activate
 
-                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                mkdir -p html_reports
+                mkdir -p allure-reports
 
-                        sh '''
-                            mkdir -p allure-results
+                pytest -n 2 -v -s \
+                --browser ${params.Browser} --headed \
+                --alluredir=allure-reports \
+                --html=html_reports/test_report.html
+                """
+            }
+        }
 
-                            export TEST_EMAIL=$TEST_EMAIL
-                            export TEST_PASSWORD=$TEST_PASSWORD
 
-                            .venv/bin/python -m pytest tests/ \
-                                -v -s \
-                                -n auto \
-                                --dist=loadfile \
-                                --alluredir=allure-results
-                        '''
-                    }
-                }
+        stage('Archive HTML Report') {
+            steps {
+                archiveArtifacts artifacts: 'html_reports/*.html', fingerprint: true
             }
         }
     }
 
     post {
         always {
-            allure results: [[path: 'allure-results']]
-        }
-
-        success {
-            echo "✅ Tests Passed Successfully"
-        }
-
-        unstable {
-            echo "⚠️ Some tests failed (unstable build)"
-        }
-
-        failure {
-            echo "❌ Pipeline Failed"
-        }
-
-        cleanup {
-            deleteDir()
+            allure(
+                includeProperties: false,
+                jdk: '',
+                results: [[path: 'allure-reports']]
+            )
         }
     }
 }

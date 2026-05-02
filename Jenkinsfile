@@ -33,6 +33,7 @@ pipeline {
                 pip install pytest-html
                 pip install pytest-xdist 
                 pip install Faker
+                pip3 install python-dotenv
                 '''
             }
         }

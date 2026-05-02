@@ -82,4 +82,3 @@ pipeline {
         }
     }
 }
-// https://6f29-2401-4900-8841-2639-19d2-fc57-e1c8-3769.ngrok-free.app: webhook url for Jenkins to trigger pipeline on code changes
